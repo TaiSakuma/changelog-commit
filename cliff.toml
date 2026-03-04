@@ -1,0 +1,52 @@
+# Default git-cliff configuration for the changelog-commit composite action.
+#
+# This file is not standalone — the action supplements it with CLI flags:
+#   --tag-pattern  (derived from the release-tag-prefix input)
+#   --github-repo  (set to $GITHUB_REPOSITORY; requires GITHUB_TOKEN)
+#
+# The action copies this file to a temp path and, when the body or
+# commit-parsers inputs are provided, patches the copy before passing
+# it to git-cliff via --config.
+
+[changelog]
+header = """
+# Changelog\n
+All notable changes to this project will be documented in this file.\n
+"""
+body = """
+{% if version -%}
+  ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else -%}
+  ## [Unreleased]
+{% endif -%}
+
+{% for group, commits in commits | group_by(attribute="group") %}
+  ### {{ group | striptags | trim | upper_first }}
+  {% for commit in commits %}
+    - {% if commit.scope %}**{{ commit.scope }}**: {% endif %}\
+      {{ commit.message | replace_regex(from="\\s*\\(\\S*#\\d+\\)", to="") | upper_first }}\
+      {%- if commit.remote.pr_number %} ([#{{ commit.remote.pr_number }}](https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/pull/{{ commit.remote.pr_number }})){% endif %}\
+      {%- if commit.breaking %} **BREAKING**{% endif -%}
+  {% endfor %}
+{% endfor %}
+"""
+trim = true
+postprocessors = [
+  { pattern = '\n$', replace = "\n\n" },
+]
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_parsers = [
+  { message = "^docs: update CHANGELOG", skip = true },
+  { message = "^feat", group = "<!-- 0 -->Features" },
+  { message = "^fix", group = "<!-- 1 -->Bug Fixes" },
+  { message = "^perf", group = "<!-- 2 -->Performance" },
+  { message = "^docs", group = "<!-- 3 -->Documentation" },
+  { message = "^(refactor|style)", group = "<!-- 4 -->Refactoring" },
+  { message = "^test", group = "<!-- 5 -->Testing" },
+  { message = "^(build|ci|chore)", group = "<!-- 6 -->Build & CI" },
+  { message = "^revert", group = "<!-- 7 -->Reverted" },
+]

@@ -1,0 +1,134 @@
+name: Changelog commit
+description: >-
+  Generate a changelog with git-cliff, commit the result, create a release
+  tag, and push both to the target branch.
+
+branding:
+  icon: file-text
+  color: green
+
+inputs:
+  trigger-tag:
+    description: Tag that triggered the workflow (e.g., u1.2.3)
+    required: true
+  trigger-tag-prefix:
+    description: Prefix to strip from the trigger tag
+    required: false
+    default: u
+  release-tag-prefix:
+    description: Prefix for the release tag
+    required: false
+    default: v
+  branch:
+    description: Branch to verify against, commit to, and push
+    required: false
+    default: main
+  changelog-path:
+    description: Path to the changelog file
+    required: false
+    default: CHANGELOG.md
+  commit-parsers:
+    description: >-
+      TOML array of commit parsers to override the defaults
+      (e.g., [{ message = "^feat", group = "Features" }])
+    required: false
+    default: ""
+  body:
+    description: Tera template for the changelog body (overrides the default)
+    required: false
+    default: ""
+
+outputs:
+  release-tag:
+    description: Computed release tag (e.g., v1.2.3)
+    value: ${{ steps.derive.outputs.release-tag }}
+  version:
+    description: Bare version number (e.g., 1.2.3)
+    value: ${{ steps.derive.outputs.version }}
+  changed:
+    description: "'true' or 'false' — whether the changelog was updated"
+    value: ${{ steps.commit.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+        ref: ${{ inputs.branch }}
+
+    - name: Verify tag on branch
+      shell: bash
+      run: |
+        TAG_COMMIT=$(git rev-list -n 1 "$TAG")
+        if ! git merge-base --is-ancestor "$TAG_COMMIT" HEAD; then
+          echo "::error::Tag $TAG is not on $BRANCH"
+          exit 1
+        fi
+      env:
+        TAG: ${{ inputs.trigger-tag }}
+        BRANCH: ${{ inputs.branch }}
+
+    - name: Derive release tag
+      id: derive
+      shell: bash
+      run: |
+        VERSION="${TRIGGER_TAG#"$PREFIX"}"
+        echo "release-tag=${RELEASE_PREFIX}${VERSION}" >> "$GITHUB_OUTPUT"
+        echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+      env:
+        TRIGGER_TAG: ${{ inputs.trigger-tag }}
+        PREFIX: ${{ inputs.trigger-tag-prefix }}
+        RELEASE_PREFIX: ${{ inputs.release-tag-prefix }}
+
+    - name: Generate config
+      id: config
+      shell: bash
+      run: |
+        CONFIG=$(mktemp --suffix=.toml)
+        cp "${{ github.action_path }}/cliff.toml" "$CONFIG"
+
+        if [[ -n "$INPUT_BODY" || -n "$INPUT_COMMIT_PARSERS" ]]; then
+          node "${{ github.action_path }}/dist/patch-config.cjs" "$CONFIG"
+        fi
+
+        echo "path=$CONFIG" >> "$GITHUB_OUTPUT"
+      env:
+        INPUT_BODY: ${{ inputs.body }}
+        INPUT_COMMIT_PARSERS: ${{ inputs.commit-parsers }}
+
+    - name: Run git-cliff
+      uses: orhun/git-cliff-action@v4
+      with:
+        config: ${{ steps.config.outputs.path }}
+        args: >-
+          --verbose
+          --tag ${{ steps.derive.outputs.release-tag }}
+          --unreleased
+          --prepend ${{ inputs.changelog-path }}
+          --github-repo ${{ github.repository }}
+          --tag-pattern '${{ inputs.release-tag-prefix }}[0-9].*'
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Commit, tag, and push
+      id: commit
+      shell: bash
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add "$CHANGELOG_PATH"
+        if git diff --cached --quiet; then
+          echo "No changes to $CHANGELOG_PATH"
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        else
+          git commit -m "docs: update $CHANGELOG_PATH for $RELEASE_TAG"
+          git tag "$RELEASE_TAG"
+          git push origin "$BRANCH" --tags
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+      env:
+        CHANGELOG_PATH: ${{ inputs.changelog-path }}
+        RELEASE_TAG: ${{ steps.derive.outputs.release-tag }}
+        BRANCH: ${{ inputs.branch }}

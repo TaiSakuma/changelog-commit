@@ -1,0 +1,4 @@
+node_modules/
+
+# Override root-level dist/ ignore — the bundled script must be checked in
+!dist/
