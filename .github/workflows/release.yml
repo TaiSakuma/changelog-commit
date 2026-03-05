@@ -1,0 +1,44 @@
+name: Release a new version
+
+# Second stage of the two-tag release flow.
+# Runs after the changelog workflow creates the release tag (e.g., v1.2.3).
+# Creates a GitHub Release, updates the floating major-version tag (e.g., v1),
+# and moves the "latest" tag.
+
+on:
+  workflow_run:
+    workflows: ["Generate changelog"]
+    types: [completed]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release tag
+        id: version
+        uses: TaiSakuma/checkout-version-tag@v1
+        with:
+          trigger-tag: ${{ github.event.workflow_run.head_branch }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ steps.version.outputs.release-tag }} \
+            --generate-notes
+
+      # Move the floating major-version tag (e.g., v1) so users who pin to
+      # it always get the latest patch release.
+      - name: Update floating major-version tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          MAJOR="v$(echo '${{ steps.version.outputs.release-tag }}' | sed 's/^v//' | cut -d. -f1)"
+          git tag -f "$MAJOR" ${{ steps.version.outputs.release-tag }}
+          git push -f origin "$MAJOR"
+
+      - name: Tag latest
+        uses: EndBug/latest-tag@v1
