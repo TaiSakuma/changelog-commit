@@ -37,6 +37,8 @@ The `dist/` directory **must be committed** — GitHub Actions runs the compiled
 - `ci.yml` — runs unit tests (`npm test`), builds, and checks `dist/` is up to date.
 - `pr-title.yml` — validates PR titles follow Conventional Commits format.
 - `conventional-label.yml` — auto-labels PRs based on their Conventional Commits title type.
+- `changelog.yml` — generates changelog on `u*.*.*` tag push (uses this action itself).
+- `release.yml` — creates GitHub Release and updates floating major-version tag after changelog.
 
 ## PR Convention
 
@@ -44,9 +46,7 @@ PR titles must follow Conventional Commits (e.g., `feat: ...`, `fix: ...`). Squa
 
 ## Releases
 
-1. Tag with `v1.x.x` (e.g., `v1.0.0`) and push.
-2. Create a GitHub Release from the tag. Check **"Publish this Action to the GitHub Marketplace"**.
-3. Update the floating `v1` tag to point to the latest `v1.x.x`.
+Two-tag flow: push `u1.x.x` → changelog workflow creates `v1.x.x` tag → release workflow creates GitHub Release and updates floating `v1` tag. See `CONTRIBUTING.md` for details.
 
 ## Marketplace
 
