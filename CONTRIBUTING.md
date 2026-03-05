@@ -80,7 +80,7 @@ This project uses a two-tag release flow automated by CI:
 
    ```bash
    pnpm version patch   # or minor / major
-   git push --tags
+   git push --follow-tags
    ```
 
    This creates a `u`-prefixed tag (e.g., `u1.2.1`) via the `tag-version-prefix=u` setting in `.npmrc`.
