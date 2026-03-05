@@ -19,9 +19,9 @@ Extracted from [`TaiSakuma/legendary-octo-happiness`](https://github.com/TaiSaku
 ## Build & Test
 
 ```bash
-npm install        # install dependencies
-npm run build      # compile src/patch-config.ts → dist/patch-config.cjs (esbuild)
-npm test           # run tests with vitest
+pnpm install       # install dependencies
+pnpm run build     # compile src/patch-config.ts → dist/patch-config.cjs (esbuild)
+pnpm test          # run tests with vitest
 ```
 
 ## How patch-config works
@@ -30,11 +30,11 @@ When users provide `body` or `commit-parsers` inputs, the action copies `cliff.t
 
 ## Important
 
-The `dist/` directory **must be committed** — GitHub Actions runs the compiled output directly. After any change to `src/`, always run `npm run build` and commit the updated `dist/patch-config.cjs`.
+The `dist/` directory **must be committed** — GitHub Actions runs the compiled output directly. After any change to `src/`, always run `pnpm run build` and commit the updated `dist/patch-config.cjs`.
 
 ## CI Workflows
 
-- `ci.yml` — runs unit tests (`npm test`), builds, and checks `dist/` is up to date.
+- `unit-test.yml` — runs unit tests (`pnpm test`), builds, and checks `dist/` is up to date.
 - `pr-title.yml` — validates PR titles follow Conventional Commits format.
 - `conventional-label.yml` — auto-labels PRs based on their Conventional Commits title type.
 - `changelog.yml` — generates changelog on `u*.*.*` tag push (uses this action itself).

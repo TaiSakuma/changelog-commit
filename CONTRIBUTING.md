@@ -41,34 +41,34 @@ Individual commit messages within a PR are free-form. Only the PR title is enfor
 ### Prerequisites
 
 - Node.js 20+
-- npm
+- pnpm
 
 ### Setup
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Build
 
 ```bash
-npm run build    # compile src/patch-config.ts -> dist/patch-config.cjs (esbuild)
+pnpm run build   # compile src/patch-config.ts -> dist/patch-config.cjs (esbuild)
 ```
 
-The `dist/` directory **must be committed** — GitHub Actions runs the compiled output directly. After any change to `src/`, always run `npm run build` and commit the updated `dist/patch-config.cjs`.
+The `dist/` directory **must be committed** — GitHub Actions runs the compiled output directly. After any change to `src/`, always run `pnpm run build` and commit the updated `dist/patch-config.cjs`.
 
 ### Test
 
 ```bash
-npm test         # run tests with vitest
+pnpm test        # run tests with vitest
 ```
 
 ## CI
 
 CI runs on push to `main` and on pull requests:
 
-- **Unit tests** — runs `npm test` (Vitest + fast-check).
-- **Build check** — runs `npm run build` and verifies `dist/` is up to date via `git diff --exit-code dist/`.
+- **Unit tests** — runs `pnpm test` (Vitest + fast-check).
+- **Build check** — runs `pnpm run build` and verifies `dist/` is up to date via `git diff --exit-code dist/`.
 - **PR title validation** — ensures PR titles follow Conventional Commits format.
 - **Conventional labels** — automatically labels PRs based on their title type.
 
@@ -76,12 +76,14 @@ CI runs on push to `main` and on pull requests:
 
 This project uses a two-tag release flow automated by CI:
 
-1. Tag with the `u` prefix and push:
+1. Bump the version and push the tag:
 
    ```bash
-   git tag u1.x.x
-   git push origin u1.x.x
+   pnpm version patch   # or minor / major
+   git push --tags
    ```
+
+   This creates a `u`-prefixed tag (e.g., `u1.2.1`) via the `tag-version-prefix=u` setting in `.npmrc`.
 
 2. The **Generate changelog** workflow runs automatically, updating `CHANGELOG.md` and creating the `v1.x.x` tag.
 

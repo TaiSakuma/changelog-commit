@@ -1,4 +1,5 @@
 node_modules/
+.claude/settings.local.json
 
 # Override root-level dist/ ignore — the bundled script must be checked in
 !dist/

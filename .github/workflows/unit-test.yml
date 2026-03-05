@@ -1,4 +1,4 @@
-name: CI
+name: Run unit tests
 
 # Run unit tests and verify the compiled dist/ bundle is up to date.
 
@@ -13,12 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm run build
       - name: Check dist/ is up to date
         run: git diff --exit-code dist/
