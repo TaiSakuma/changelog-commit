@@ -98,6 +98,13 @@ runs:
         INPUT_BODY: ${{ inputs.body }}
         INPUT_COMMIT_PARSERS: ${{ inputs.commit-parsers }}
 
+    # git-cliff's --prepend requires the file to already exist.
+    - name: Ensure changelog file exists
+      shell: bash
+      run: |
+        mkdir -p "$(dirname "${{ inputs.changelog-path }}")"
+        touch "${{ inputs.changelog-path }}"
+
     - name: Run git-cliff
       uses: orhun/git-cliff-action@v4
       with:
