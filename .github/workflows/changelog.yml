@@ -1,0 +1,21 @@
+name: Generate changelog
+
+# First stage of the two-tag release flow.
+# Pushing a trigger tag (e.g., u1.2.3) starts this workflow, which updates
+# CHANGELOG.md and creates the corresponding release tag (e.g., v1.2.3).
+# The release.yml workflow then picks up from there.
+
+on:
+  push:
+    tags:
+      - "u*.*.*"
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: TaiSakuma/changelog-commit@v1
+        with:
+          trigger-tag: ${{ github.ref_name }}
