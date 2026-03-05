@@ -1,5 +1,7 @@
 # changelog-commit
 
+[![GitHub Marketplace](https://img.shields.io/badge/Marketplace-changelog--commit-green?logo=github)](https://github.com/marketplace/actions/changelog-commit)
+
 A GitHub Action that generates a changelog with [git-cliff](https://git-cliff.org/), commits it, creates a release tag, and pushes both to the target branch.
 
 ## Usage
