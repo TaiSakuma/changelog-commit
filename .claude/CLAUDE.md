@@ -32,12 +32,21 @@ When users provide `body` or `commit-parsers` inputs, the action copies `cliff.t
 
 The `dist/` directory **must be committed** — GitHub Actions runs the compiled output directly. After any change to `src/`, always run `npm run build` and commit the updated `dist/patch-config.cjs`.
 
+## CI Workflows
+
+- `ci.yml` — runs unit tests (`npm test`), builds, and checks `dist/` is up to date.
+- `pr-title.yml` — validates PR titles follow Conventional Commits format.
+- `conventional-label.yml` — auto-labels PRs based on their Conventional Commits title type.
+
+## PR Convention
+
+PR titles must follow Conventional Commits (e.g., `feat: ...`, `fix: ...`). Squash-merge is used, so the PR title becomes the commit message on `main`. See `CONTRIBUTING.md` for details.
+
 ## Releases
 
-1. Tag with `v1.x.x` (e.g., `v1.0.0`).
-2. Create a GitHub Release from the tag.
-3. Check **"Publish this Action to the GitHub Marketplace"** in the release form.
-4. Maintain a floating `v1` tag pointing to the latest `v1.x.x` for users who pin to the major version.
+1. Tag with `v1.x.x` (e.g., `v1.0.0`) and push.
+2. Create a GitHub Release from the tag. Check **"Publish this Action to the GitHub Marketplace"**.
+3. Update the floating `v1` tag to point to the latest `v1.x.x`.
 
 ## Marketplace
 
