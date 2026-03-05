@@ -101,7 +101,9 @@ runs:
     # git-cliff's --prepend requires the file to already exist.
     - name: Ensure changelog file exists
       shell: bash
-      run: touch "${{ inputs.changelog-path }}"
+      run: |
+        mkdir -p "$(dirname "${{ inputs.changelog-path }}")"
+        touch "${{ inputs.changelog-path }}"
 
     - name: Run git-cliff
       uses: orhun/git-cliff-action@v4
