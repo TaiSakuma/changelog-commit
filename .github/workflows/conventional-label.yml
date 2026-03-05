@@ -1,0 +1,33 @@
+name: Label PR by convention
+
+# Automatically label PRs based on their Conventional Commits title type.
+# These labels drive the categorized release notes in .github/release.yml.
+
+on:
+  pull_request_target:
+    types: [opened, edited]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: bcoe/conventional-release-labels@v1
+        with:
+          type_labels: |
+            {
+              "feat": "feature",
+              "fix": "fix",
+              "docs": "documentation",
+              "style": "style",
+              "refactor": "refactor",
+              "perf": "performance",
+              "test": "test",
+              "build": "build",
+              "ci": "ci",
+              "chore": "chore",
+              "revert": "revert"
+            }
+          ignored_types: "[]"
